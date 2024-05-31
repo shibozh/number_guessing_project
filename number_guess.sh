@@ -4,21 +4,28 @@ echo -e "\n~~~~ Guessing Number Game~~~~\n"
 echo -e "\nEnter your username:"
 read USERNAME
 USERNAME=$(echo "$USERNAME" | sed -r 's/^ *| *$//g')
-SEARCH_RESULT=$($PSQL "SELECT * FROM records WHERE username='$USERNAME'")
-if [[ -z $SEARCH_RESULT ]]
-then
-  echo -e "\nWelcome, $USERNAME! It looks like this is your first time here."
-  INSERT_NEW_PLAYER=$($PSQL "INSERT INTO records(username) VALUES('$USERNAME')")
-else
-  IFS='|' read PLAYER_ID USERNAME GAMES_PLAYED BEST_GAME <<< "$SEARCH_RESULT"
-  echo -e "\nWelcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
+
+if [[ -z "$USERNAME" ]]; then
+  echo "Username cannot be empty. Please run the script again and enter a valid username."
+  exit 1
 fi
 
-# 生成随机数
+SEARCH_RESULT=$($PSQL "SELECT player_id, username, games_played, best_game FROM records WHERE username='$USERNAME'")
+if [[ $SEARCH_RESULT ]]
+then
+  IFS='|' read PLAYER_ID USERNAME GAMES_PLAYED BEST_GAME <<< "$SEARCH_RESULT"
+  echo -e "\nWelcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
+else
+  echo -e "\nWelcome, $USERNAME! It looks like this is your first time here."
+  INSERT_NEW_PLAYER=$($PSQL "INSERT INTO records(username, games_played, best_game) VALUES('$USERNAME', 0, NULL)")
+  GAMES_PLAYED=0
+  BEST_GAME=NULL
+fi
+
 RANDOM_NUMBER=$(( ( RANDOM % 1000 ) + 1 ))
 echo -e "\nGuess the secret number between 1 and 1000:"
-echo $RANDOM_NUMBER
 GUESS_TIME=0
+
 while true
 do
   read PLAYER_GUESS
@@ -27,22 +34,18 @@ do
     GUESS_TIME=$((GUESS_TIME + 1))
     if [[ $PLAYER_GUESS -lt $RANDOM_NUMBER ]]
     then
-      echo -e "\nIt's lower than that, guess again:"
-      continue
+      echo -e "\nIt's higher than that, guess again:"
     elif [[ $PLAYER_GUESS -gt $RANDOM_NUMBER ]]
     then
-      echo -e "\nIt's higher than that, guess again:"
-      continue
+      echo -e "\nIt's lower than that, guess again:"
     else
-      GAME_PLAYED=$($PSQL "SELECT games_played FROM records WHERE username='$USERNAME'")
-      GAME_PLAYED=$((GAME_PLAYED + 1))
-      UPDATE_GAME_PLAYED=$($PSQL "UPDATE records SET games_played = $GAME_PLAYED WHERE username='$USERNAME'")
+      GAMES_PLAYED=$((GAMES_PLAYED + 1))
+      UPDATE_GAME_PLAYED=$($PSQL "UPDATE records SET games_played = $GAMES_PLAYED WHERE username='$USERNAME'")
 
-
-      BEST_GAME=$($PSQL "SELECT best_game FROM records WHERE username='$USERNAME'")
-      if [[ -z $BEST_GAME ]] || [[ $GUESS_TIME -lt $BEST_GAME ]]; then
+      if [[ $BEST_GAME == "NULL" ]] || [[ $GUESS_TIME -lt $BEST_GAME ]]; then
         UPDATE_BEST_GAME=$($PSQL "UPDATE records SET best_game = $GUESS_TIME WHERE username='$USERNAME'")
       fi
+
       echo -e "\nYou guessed it in $GUESS_TIME tries. The secret number was $RANDOM_NUMBER. Nice job!"
       break
     fi
