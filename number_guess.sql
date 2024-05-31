@@ -49,9 +49,9 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.records (
     player_id integer NOT NULL,
-    name character varying(50) NOT NULL,
-    games_played integer,
-    best_game integer
+    username character varying(50) NOT NULL,
+    games_played integer DEFAULT 0,
+    best_game integer DEFAULT 0
 );
 
 
@@ -90,13 +90,23 @@ ALTER TABLE ONLY public.records ALTER COLUMN player_id SET DEFAULT nextval('publ
 -- Data for Name: records; Type: TABLE DATA; Schema: public; Owner: freecodecamp
 --
 
+INSERT INTO public.records VALUES (56, 'bruce', 0, 0);
+INSERT INTO public.records VALUES (57, 'fsd', 0, 0);
+INSERT INTO public.records VALUES (59, 'user_1717179992969', 2, 923);
+INSERT INTO public.records VALUES (58, 'user_1717179992970', 5, 56);
+INSERT INTO public.records VALUES (61, 'user_1717180090014', 2, 269);
+INSERT INTO public.records VALUES (60, 'user_1717180090015', 5, 79);
+INSERT INTO public.records VALUES (63, 'user_1717180105619', 2, 534);
+INSERT INTO public.records VALUES (62, 'user_1717180105620', 5, 324);
+INSERT INTO public.records VALUES (65, 'user_1717180144208', 2, 605);
+INSERT INTO public.records VALUES (64, 'user_1717180144209', 5, 48);
 
 
 --
 -- Name: records_player_id_seq; Type: SEQUENCE SET; Schema: public; Owner: freecodecamp
 --
 
-SELECT pg_catalog.setval('public.records_player_id_seq', 1, false);
+SELECT pg_catalog.setval('public.records_player_id_seq', 65, true);
 
 
 --
