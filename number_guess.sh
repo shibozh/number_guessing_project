@@ -34,7 +34,6 @@ do
       echo -e "\nIt's higher than that, guess again:"
       continue
     else
-      echo -e "\nYou guessed it in $GUESS_TIME tries. The secret number was $RANDOM_NUMBER. Nice job!"
       GAME_PLAYED=$($PSQL "SELECT games_played FROM records WHERE username='$USERNAME'")
       GAME_PLAYED=$((GAME_PLAYED + 1))
       UPDATE_GAME_PLAYED=$($PSQL "UPDATE records SET games_played = $GAME_PLAYED WHERE username='$USERNAME'")
@@ -44,6 +43,7 @@ do
       if [[ -z $BEST_GAME ]] || [[ $GUESS_TIME -lt $BEST_GAME ]]; then
         UPDATE_BEST_GAME=$($PSQL "UPDATE records SET best_game = $GUESS_TIME WHERE username='$USERNAME'")
       fi
+      echo -e "\nYou guessed it in $GUESS_TIME tries. The secret number was $RANDOM_NUMBER. Nice job!"
       break
     fi
   else
